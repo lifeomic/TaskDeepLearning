@@ -2,11 +2,11 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='taskdl',
-      version='0.1.0',
+      version='0.1.1',
       description='Deep learning on Lifeomic',
       keywords = ['tensorflow', 'machine learning', 'lifeomic', 'deep learning', 'pytorch'],
       url='https://github.com/lifeomic/TaskDeepLearning',
-      download_url='https://github.com/lifeomic/TaskDeepLearning/archive/0.1.0.tar.gz',
+      download_url='https://github.com/lifeomic/TaskDeepLearning/archive/0.1.1.tar.gz',
       author='Derek Miller',
       author_email='dmmiller612@gmail.com',
       install_requires=['requests'],
