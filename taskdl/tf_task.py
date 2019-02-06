@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 import itertools
 from sklearn.metrics import roc_curve, auc
+from uuid import uuid4
 
 
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -57,7 +58,7 @@ class LifeomicTensorflow(object):
     def __init__(self, serving_shape=None, predict_func=None):
         self.predict_func = predict_func
         self.serving_shape = serving_shape
-        self.model_dir = "temp_model"
+        self.model_dir = 'temp_model_' + str(uuid4())
         self.model = tf.estimator.Estimator(self.build_model, model_dir=self.model_dir)
 
     @property
@@ -118,13 +119,13 @@ class LifeomicTensorflow(object):
 
     def get_train_metric_summaries(self):
         event_file = None
-        for filename in os.listdir('temp_model'):
+        for filename in os.listdir(self.model_dir):
             if 'tfevents' in filename:
                 event_file = filename
                 break
 
         values = {}
-        for e in tf.train.summary_iterator('temp_model/' + event_file):
+        for e in tf.train.summary_iterator(self.model_dir + '/' + event_file):
             for v in e.summary.value:
                 if v.tag in self.available_metrics:
                     if v.tag in values:
@@ -185,8 +186,8 @@ class LifeomicClassification(LifeomicTensorflow):
     def one_hot(self, items, n_classes):
         to_ret = np.zeros((len(items), n_classes))
         for i, label in enumerate(items):
-            start = np.zeros(10)
-            start[label] = 1.0
+            start = np.zeros(n_classes)
+            start[int(label)] = 1.0
             to_ret[i] = start
         return to_ret
 
@@ -280,26 +281,22 @@ class LifeomicMultiClassification(LifeomicClassification):
         self.plot_auc(predictions, labels, '%s/%s_ROC' % (directory, data_type), classes)
 
 
-class TFMetrics(object):
+class LifeomicBinaryClassification(LifeomicClassification):
 
-    def __init__(self):
-        pass
+    available_metrics = ['loss', 'accuracy', 'auc', 'recall', 'precision']
 
+    def build_metrics(self, predictions, labels):
+        accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions, name='acc_op')
+        metrics = {'accuracy': accuracy}
+        tf.summary.scalar('accuracy', accuracy[1])
+        return metrics
 
-class TFMultiClassificationMetrics(object):
+    def save_metrics(self, predictions, labels, directory, is_train, classes=None):
+        data_type = 'Train' if is_train else 'Test'
+        self.plot_confusion_matrix(predictions, labels,
+                                   '%s Confusion Matrix' % data_type,
+                                   '%s/%s-ConfusionMatrix' % (directory, data_type),
+                                   classes)
+        self.plot_auc(predictions, labels, '%s/%s_ROC' % (directory, data_type), classes)
 
-    def __init__(self):
-        pass
-
-
-class TFRegressionMetrics(object):
-
-    def __init__(self):
-        pass
-
-
-class TFAutoEncoderMetrics(object):
-
-    def __init__(self):
-        pass
 
