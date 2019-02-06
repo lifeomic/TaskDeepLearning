@@ -1,11 +1,13 @@
 import subprocess
 import json
-
+import tempfile
+import os
+from subprocess import Popen, PIPE
 
 class TaskWrapper(object):
 
     images = {
-        'tensorflow': 'tensorflow/tensorflow:1.12.0-gpu-py3'
+        'tensorflow': 'lifeomic/lifeomic_tf_task:latest'
     }
 
     def __init__(self, dataset_id, workspace='/tmp', file_delimiter='/', env='us'):
@@ -15,9 +17,14 @@ class TaskWrapper(object):
         self.env = env
 
     def __upload_python_file(self, python_path):
-        result = subprocess.check_output(['lo', 'files-upload', python_path, self.dataset_id, '--overwrite'])
-        file_id = result.split(' ')[-1]
-        return file_id.strip()
+        try:
+            result = subprocess.check_output(['lo', 'files-upload', python_path, self.dataset_id, '--overwrite'])
+            file_id = result.split(' ')[-1]
+            return file_id.strip()
+        except subprocess.CalledProcessError as e:
+            print(e.output)
+            raise RuntimeError()
+
 
     def __construct_inputs(self, python_path, file_datasets=None):
         file_name = python_path.split(self.file_delimiter)[-1]
@@ -46,7 +53,7 @@ class TaskWrapper(object):
                 {
                     "path": '%s/%s' % (self.workspace, output_path),
                     "url": "https://api.%s.lifeomic.com/v1/projects/%s" % (self.env, self.dataset_id),
-                    "type": "FILE"
+                    "type": "DATASET"
                 }
             ],
             "resources": {
@@ -70,7 +77,19 @@ class TaskWrapper(object):
         image = self.images[image]
         inputs = self.__construct_inputs(python_path, file_datasets)
         body = self.construct_body(task_name, inputs, image)
-        print(json.dumps(body))
+        task_json = json.dumps(body)
+        print(task_json)
+        path = 'tmp_task.json'
+        try:
+            with open(path, 'w') as tmp:
+                tmp.write(task_json)
+            p1 = Popen(['cat', path], stdout=PIPE)
+            p2 = Popen(["lo", 'tasks-create'], stdin=p1.stdout, stdout=PIPE)
+            p1.stdout.close()
+            result = p2.communicate()[0]
+            print(result)
+        except subprocess.CalledProcessError as e:
+            print(e.output)
 
 
 class FileDataset(object):

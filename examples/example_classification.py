@@ -61,6 +61,6 @@ class MnistClassification(LifeomicMultiClassification):
         return {"item": features_train}, labels_train, {"item": features_test}, labels_test
 
 
-mr = ModelRunner(MnistClassification())
-mr.run_all(epochs=2000, batch_size=500)
-print("")
+if __name__ == '__main__':
+    mr = ModelRunner(MnistClassification())
+    mr.run_all(epochs=2000, batch_size=500)

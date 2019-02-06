@@ -60,9 +60,9 @@ class BinaryClassification(LifeomicBinaryClassification):
         return {"item": x_train}, y_train, {"item": x_test}, y_test
 
 
-model = ModelRunner(BinaryClassification())
-model.run_all(epochs=1000, batch_size=128)
-print("")
+if __name__ == '__main__':
+    model = ModelRunner(BinaryClassification())
+    model.run_all(epochs=1000, batch_size=128)
 
 
 

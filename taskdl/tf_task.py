@@ -45,7 +45,7 @@ class ModelRunner(object):
                 self.model.save_metrics(test_predictions, test_labels, self.model.save_dir, is_train=False)
 
         if zip_directory:
-            zipf = zipfile.ZipFile('model.zip', 'w', zipfile.ZIP_DEFLATED)
+            zipf = zipfile.ZipFile(self.model.save_dir + '.zip', 'w', zipfile.ZIP_DEFLATED)
             self.__zipdir(self.model.save_dir, zipf)
             zipf.close()
 
