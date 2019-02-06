@@ -52,12 +52,11 @@ class ModelRunner(object):
 
 class LifeomicTensorflow(object):
 
-    save_dir = 'model_data'
-
-    def __init__(self, serving_shape=None, predict_func=None):
+    def __init__(self, serving_shape=None, predict_func=None, save_dir='model_data'):
         self.predict_func = predict_func
         self.serving_shape = serving_shape
         self.model_dir = 'temp_model_' + str(uuid4())
+        self.save_dir = save_dir
         self.model = tf.estimator.Estimator(self.build_model, model_dir=self.model_dir)
 
     @property
@@ -156,8 +155,8 @@ class LifeomicClassification(LifeomicTensorflow):
 
     model_type = 'classification'
 
-    def __init__(self, serving_shape=None, predict_func=None):
-        super().__init__(serving_shape, predict_func)
+    def __init__(self, serving_shape=None, predict_func=None, save_dir='model_data'):
+        super().__init__(serving_shape, predict_func, save_dir)
 
     def load_data(self, train_test_split=None):
         train_dict, train_labels, test_dict, test_labels = None, None, None, None
@@ -259,8 +258,8 @@ class LifeomicMultiClassification(LifeomicClassification):
 
     available_metrics = ['loss', 'accuracy']
 
-    def __init__(self, serving_shape=None, predict_func=None):
-        super().__init__(serving_shape, predict_func)
+    def __init__(self, serving_shape=None, predict_func=None, save_dir='model_data'):
+        super().__init__(serving_shape, predict_func, save_dir)
 
     def build_metrics(self, predictions, labels):
         accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions, name='acc_op')
@@ -284,7 +283,7 @@ class LifeomicBinaryClassification(LifeomicClassification):
 
     available_metrics = ['loss', 'accuracy', 'auc', 'recall', 'precision']
 
-    def build_metrics(self, predictions, labels):
+    def build_metrics(self, predictions, labels, save_dir=''):
         accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions, name='acc_op')
         metrics = {'accuracy': accuracy}
         tf.summary.scalar('accuracy', accuracy[1])

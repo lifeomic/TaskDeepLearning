@@ -69,7 +69,7 @@ class TaskWrapper(object):
                 })
         return inputs
 
-    def construct_body(self, task_name, inputs, image, output_path='model_data.zip'):
+    def __construct_body(self, task_name, inputs, image, output_path='model_data.zip'):
         return {
             "name": task_name,
             "datasetId": self.dataset_id,
@@ -98,12 +98,16 @@ class TaskWrapper(object):
             ]
         }
 
-    def run_task(self, python_path, image='tensorflow', task_name='Deep Learning Task', file_datasets=None,
-                 upload_file_paths=None):
+    def run_task(self, python_path,
+                 image='tensorflow',
+                 task_name='Deep Learning Task',
+                 file_datasets=None,
+                 upload_file_paths=None,
+                 model_path='model_data.zip'):
         image = self.images[image]
         inputs = self.__construct_inputs(python_path, upload_file_paths, file_datasets)
 
-        body = self.construct_body(task_name, inputs, image)
+        body = self.__construct_body(task_name, inputs, image, model_path)
         task_json = json.dumps(body)
         print("Starting Task")
         print(task_json)

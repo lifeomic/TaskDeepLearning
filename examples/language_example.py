@@ -6,8 +6,8 @@ import subprocess
 
 class BinaryClassification(LifeomicBinaryClassification):
 
-    def __init__(self, serving_shape=None):
-        super().__init__(self, serving_shape)
+    def __init__(self, serving_shape=None, save_dir='language_model'):
+        super().__init__(self, serving_shape, save_dir=save_dir)
 
     @staticmethod
     def build_graph(x_dict):
@@ -32,7 +32,7 @@ class BinaryClassification(LifeomicBinaryClassification):
 
         labels_expand = tf.expand_dims(labels, 1)
         loss = tf.losses.mean_squared_error(labels_expand, logits)
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0008)
         train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
 
         metrics = self.build_metrics(tf.squeeze(z), labels)
@@ -81,7 +81,7 @@ class BinaryClassification(LifeomicBinaryClassification):
         return (x_train, y_train), (x_test, y_test)
 
     def train_test_data_loader(self, train_test_split=0.25):
-        (x_train, y_train), (x_test, y_test) = self.load_imdb(path='imdb.npz', num_words=20000)
+        (x_train, y_train), (x_test, y_test) = self.load_imdb(path='examples/imdb.npz', num_words=20000)
         sequence = tf.keras.preprocessing.sequence
         x_train = sequence.pad_sequences(x_train, maxlen=100)
         x_test = sequence.pad_sequences(x_test, maxlen=100)
@@ -96,7 +96,6 @@ if __name__ == '__main__':
     model = ModelRunner(BinaryClassification())
     model.run_all(epochs=1000, batch_size=128)
     result = subprocess.check_output(['ls'])
-    print(result)
 
 
 
