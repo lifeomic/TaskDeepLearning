@@ -50,7 +50,6 @@ class ModelRunner(object):
             zipf.close()
 
 
-
 class LifeomicTensorflow(object):
 
     save_dir = 'model_data'

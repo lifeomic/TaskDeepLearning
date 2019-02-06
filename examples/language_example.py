@@ -1,6 +1,7 @@
 import tensorflow as tf
 from taskdl.tf_task import LifeomicBinaryClassification, ModelRunner
 import numpy as np
+import subprocess
 
 
 class BinaryClassification(LifeomicBinaryClassification):
@@ -47,9 +48,40 @@ class BinaryClassification(LifeomicBinaryClassification):
         )
         return estim_specs
 
+    def load_imdb(self, path, num_words=None, skip_top=0,
+                        start_char=1, oov_char=2, index_from=3):
+        with np.load(path) as f:
+            x_train, labels_train = f['x_train'], f['y_train']
+            x_test, labels_test = f['x_test'], f['y_test']
+
+        indices = np.arange(len(x_train))
+        np.random.shuffle(indices)
+        x_train = x_train[indices]
+        labels_train = labels_train[indices]
+
+        indices = np.arange(len(x_test))
+        np.random.shuffle(indices)
+        x_test = x_test[indices]
+        labels_test = labels_test[indices]
+
+        xs = np.concatenate([x_train, x_test])
+        labels = np.concatenate([labels_train, labels_test])
+
+        xs = [[start_char] + [w + index_from for w in x] for x in xs]
+
+        if not num_words:
+            num_words = max([max(x) for x in xs])
+
+        xs = [[w if (skip_top <= w < num_words) else oov_char for w in x]
+              for x in xs]
+        idx = len(x_train)
+        x_train, y_train = np.array(xs[:idx]), np.array(labels[:idx])
+        x_test, y_test = np.array(xs[idx:]), np.array(labels[idx:])
+
+        return (x_train, y_train), (x_test, y_test)
+
     def train_test_data_loader(self, train_test_split=0.25):
-        imdb = tf.keras.datasets.imdb
-        (x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=20000)
+        (x_train, y_train), (x_test, y_test) = self.load_imdb(path='imdb.npz', num_words=20000)
         sequence = tf.keras.preprocessing.sequence
         x_train = sequence.pad_sequences(x_train, maxlen=100)
         x_test = sequence.pad_sequences(x_test, maxlen=100)
@@ -63,6 +95,8 @@ class BinaryClassification(LifeomicBinaryClassification):
 if __name__ == '__main__':
     model = ModelRunner(BinaryClassification())
     model.run_all(epochs=1000, batch_size=128)
+    result = subprocess.check_output(['ls'])
+    print(result)
 
 
 
