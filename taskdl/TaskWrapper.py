@@ -5,7 +5,8 @@ from subprocess import Popen, PIPE
 class TaskWrapper(object):
 
     images = {
-        'tensorflow': 'lifeomic/lifeomic_tf_task:latest'
+        'tensorflow': 'lifeomic/lifeomic_tf_task:latest',
+        'pytorch': 'anibali/pytorch:cuda-9.0'
     }
 
     def __init__(self, dataset_id, workspace='/tmp', file_delimiter='/', env='us'):
@@ -104,7 +105,7 @@ class TaskWrapper(object):
                  file_datasets=None,
                  upload_file_paths=None,
                  model_path='model_data.zip'):
-        image = self.images[image]
+        image = self.images.get(image, image)
         inputs = self.__construct_inputs(python_path, upload_file_paths, file_datasets)
 
         body = self.__construct_body(task_name, inputs, image, model_path)

@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='taskdl',
-      version='0.1.1',
+      version='0.1.2',
       description='Deep learning on Lifeomic',
       keywords = ['tensorflow', 'machine learning', 'lifeomic', 'deep learning', 'pytorch'],
       url='https://github.com/lifeomic/TaskDeepLearning',
