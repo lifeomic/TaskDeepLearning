@@ -33,7 +33,7 @@ class ModelRunner(object):
     def run_predictions(self, feature_dict):
         return self.model.predict(feature_dict)
 
-    def __run_classification_cohorts(self, save_dir, output_path):
+    def __run_classification_cohorts(self, output_path):
         cohort_dict, patients, cohort_obj = self.model.run_cohorts()
         predictions = self.run_predictions(cohort_dict)
         predictions = predictions if len(predictions.shape) == 1 else np.argmax(predictions, axis=1)
@@ -44,14 +44,14 @@ class ModelRunner(object):
             if str(prediction) in cohort_obj:
                 cohort_tuples.append([patients[i], cohort_obj[str(prediction)]])
 
-        with open(save_dir + '/' + output_path, mode='w') as cohort_file:
+        with open(output_path, mode='w') as cohort_file:
             writer = csv.writer(cohort_file, delimiter=',', quotechar='"',
                                          quoting=csv.QUOTE_MINIMAL)
             writer.writerow(['patientId', 'cohortName'])
             for cohort_tuple in cohort_tuples:
                 writer.writerow(cohort_tuple)
 
-    def run_all(self, epochs=1000, batch_size=256, zip_directory=True, output_cohort = 'cohort.csv'):
+    def run_all(self, epochs=1000, batch_size=256, zip_directory=True, output_cohort='cohort.csv'):
         train_dict, train_labels, test_dict, test_labels = self.model.load_data()
         self.model.train_model(train_dict, train_labels, epochs=epochs, batch_size=batch_size)
         self.save_model()
@@ -64,7 +64,7 @@ class ModelRunner(object):
                 self.model.save_metrics(test_predictions, test_labels, self.model.save_dir, is_train=False)
 
             try:
-                self.__run_classification_cohorts(self.model.save_dir, output_cohort)
+                self.__run_classification_cohorts(output_cohort)
             except NotImplementedError as e:
                 print("COHORT NOT IMPLEMENTED")
 

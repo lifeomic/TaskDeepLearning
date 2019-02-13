@@ -18,7 +18,7 @@ class TaskWrapper(object):
 
     def __upload_python_file(self, python_path):
         try:
-            result = subprocess.check_output(['lo', 'files-upload', python_path, self.dataset_id, '--overwrite'])
+            result = subprocess.check_output(['lo', 'files', 'upload', python_path, self.dataset_id, '--force'])
             file_id = str(result, 'utf-8').split(' ')[-1]
             print("File id for python file:")
             print(file_id)
@@ -31,7 +31,7 @@ class TaskWrapper(object):
         file_ids = []
         try:
             for file_path in file_paths:
-                result = subprocess.check_output(['lo', 'files-upload', file_path, self.dataset_id, '--overwrite'])
+                result = subprocess.check_output(['lo', 'files', 'upload', file_path, self.dataset_id, '--force'])
                 file_id = str(result, 'utf-8').split(' ')[-1].replace('\n', '')
                 print("File id for dataset file:")
                 print(file_id)
@@ -131,7 +131,7 @@ class TaskWrapper(object):
             with open(path, 'w') as tmp:
                 tmp.write(task_json)
             p1 = Popen(['cat', path], stdout=PIPE)
-            p2 = Popen(["lo", 'tasks-create'], stdin=p1.stdout, stdout=PIPE)
+            p2 = Popen(["lo", 'tasks', 'create'], stdin=p1.stdout, stdout=PIPE)
             p1.stdout.close()
             result = p2.communicate()[0]
             print(str(result, 'utf-8'))
