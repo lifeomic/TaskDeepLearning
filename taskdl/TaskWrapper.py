@@ -2,6 +2,7 @@ import subprocess
 import json
 from subprocess import Popen, PIPE
 
+
 class TaskWrapper(object):
 
     images = {
@@ -70,8 +71,8 @@ class TaskWrapper(object):
                 })
         return inputs
 
-    def __construct_body(self, task_name, inputs, image, output_path='model_data.zip'):
-        return {
+    def __construct_body(self, task_name, inputs, image, output_path='model_data.zip', number_gpus=1, cohort_path=None):
+        initial = {
             "name": task_name,
             "datasetId": self.dataset_id,
             "inputs": inputs,
@@ -83,7 +84,7 @@ class TaskWrapper(object):
                 }
             ],
             "resources": {
-                "gpu_cores": 1
+                "gpu_cores": number_gpus
             },
             "executors": [
                 {
@@ -99,16 +100,29 @@ class TaskWrapper(object):
             ]
         }
 
+        if cohort_path:
+            initial['outputs'].append({
+                "path": '%s/%s' % (self.workspace, cohort_path),
+                "url": "https://api.%s.lifeomic.com/v1/projects/%s" % (self.env, self.dataset_id),
+                "type": "COHORT"
+            })
+
+        return initial
+
     def run_task(self, python_path,
                  image='tensorflow',
                  task_name='Deep Learning Task',
                  file_datasets=None,
                  upload_file_paths=None,
-                 model_path='model_data.zip'):
+                 model_path='model_data.zip',
+                 number_gpus=1,
+                 cohort_path=None):
+        if number_gpus not in [1, 4, 8]:
+            raise RuntimeError("Invalid number of gpus")
         image = self.images.get(image, image)
         inputs = self.__construct_inputs(python_path, upload_file_paths, file_datasets)
 
-        body = self.__construct_body(task_name, inputs, image, model_path)
+        body = self.__construct_body(task_name, inputs, image, model_path, number_gpus, cohort_path)
         task_json = json.dumps(body)
         print("Starting Task")
         print(task_json)

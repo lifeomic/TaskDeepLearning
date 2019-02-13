@@ -10,6 +10,7 @@ from sklearn.metrics import confusion_matrix
 import itertools
 from sklearn.metrics import roc_curve, auc
 from uuid import uuid4
+import csv
 
 
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -32,7 +33,25 @@ class ModelRunner(object):
     def run_predictions(self, feature_dict):
         return self.model.predict(feature_dict)
 
-    def run_all(self, epochs=1000, batch_size=256, zip_directory=True):
+    def __run_classification_cohorts(self, save_dir, output_path):
+        cohort_dict, patients, cohort_obj = self.model.run_cohorts()
+        predictions = self.run_predictions(cohort_dict)
+        predictions = predictions if len(predictions.shape) == 1 else np.argmax(predictions, axis=1)
+
+        cohort_tuples = []
+
+        for i, prediction in enumerate(predictions):
+            if str(prediction) in cohort_obj:
+                cohort_tuples.append([patients[i], cohort_obj[str(prediction)]])
+
+        with open(save_dir + '/' + output_path, mode='w') as cohort_file:
+            writer = csv.writer(cohort_file, delimiter=',', quotechar='"',
+                                         quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(['patientId', 'cohortName'])
+            for cohort_tuple in cohort_tuples:
+                writer.writerow(cohort_tuple)
+
+    def run_all(self, epochs=1000, batch_size=256, zip_directory=True, output_cohort = 'cohort.csv'):
         train_dict, train_labels, test_dict, test_labels = self.model.load_data()
         self.model.train_model(train_dict, train_labels, epochs=epochs, batch_size=batch_size)
         self.save_model()
@@ -43,6 +62,11 @@ class ModelRunner(object):
             if test_dict:
                 test_predictions = self.run_predictions(test_dict)
                 self.model.save_metrics(test_predictions, test_labels, self.model.save_dir, is_train=False)
+
+            try:
+                self.__run_classification_cohorts(self.model.save_dir, output_cohort)
+            except NotImplementedError as e:
+                print("COHORT NOT IMPLEMENTED")
 
         if zip_directory:
             zipf = zipfile.ZipFile(self.model.save_dir + '.zip', 'w', zipfile.ZIP_DEFLATED)
@@ -92,6 +116,10 @@ class LifeomicTensorflow(object):
     @abstractmethod
     def load_data(self, train_test_split):
         raise NotImplementedError("Load Data must be implemented")
+
+    @abstractmethod
+    def run_cohorts(self):
+        raise NotImplementedError("Cohorts is not loaded")
 
     def train_model(self, feed_dict, labels=None, epochs=100, batch_size=500, shuffle=True):
         input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -172,6 +200,16 @@ class LifeomicClassification(LifeomicTensorflow):
             test_dict, test_labels = self.test_data_loader()
 
         return train_dict, train_labels, test_dict, test_labels
+
+    @abstractmethod
+    def load_cohorts(self):
+        raise NotImplementedError("Cohorts is not loaded")
+
+    def run_cohorts(self):
+        features, patients, cohort_obj = self.load_cohorts()
+        if not cohort_obj or not 'classificationCohortMapping' in cohort_obj:
+            raise RuntimeError("classificationCohortMapping must be supplied for cohort object")
+        return features, patients, cohort_obj['classificationCohortMapping']
 
     @abstractmethod
     def build_metrics(self, predictions, labels):
