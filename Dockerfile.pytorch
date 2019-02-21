@@ -1,0 +1,3 @@
+FROM anibali/pytorch:cuda-9.0
+
+RUN pip install pandas sklearn matplotlib requests taskdl==0.1.5

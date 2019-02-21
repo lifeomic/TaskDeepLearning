@@ -7,7 +7,7 @@ class TaskWrapper(object):
 
     images = {
         'tensorflow': 'lifeomic/lifeomic_tf_task:latest',
-        'pytorch': 'anibali/pytorch:cuda-9.0'
+        'pytorch': 'lifeomic/lifeomic_torch_task:latest'
     }
 
     def __init__(self, dataset_id, workspace='/tmp', file_delimiter='/', env='us'):
