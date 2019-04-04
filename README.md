@@ -22,10 +22,10 @@ to submit job to task service. First, lets look at an example to explain what is
 ```python
 from taskdl.TaskWrapper import TaskWrapper
 TaskWrapper('19e34782-91c4-4143-aaee-2ba81ed0b206').run_task('examples/VariantTaskExample.py',
-                                                                        task_name='Variant Task',
-                                                                        upload_file_paths=['examples/variant_data.json'],
-                                                                        cohort_path='variant_model/cohort.csv',
-                                                                        model_path='variant_model.zip')
+                                                            task_name='Variant Task',
+                                                            upload_file_paths=['examples/variant_data.json'],
+                                                            cohort_path='variant_model/cohort.csv',
+                                                            model_path='variant_model.zip')
 ```
 
 In this example, the first argument in the constructor is the projectId. This is the LifeOmic project where you want to run 
@@ -44,3 +44,4 @@ you only need to input `cohort.csv`. It is worth noting that this will create a 
 
 The `model_path` parameter declares where the saved model will be. Typically, you will use a zip file here. In later documentation, 
 we will explain some of the utilities we offer to help make this a seamless process for the user.
+

@@ -14,7 +14,6 @@ class VariantTaskExample(LifeomicBinaryClassification):
 
     @staticmethod
     def build_graph(x_dict, mode):
-        print(mode == tf.estimator.ModeKeys.TRAIN)
         x = x_dict['item']
         layer1 = tf.layers.dense(x, 512, activation=tf.nn.relu)
         do1 = tf.layers.dropout(layer1, 0.5, training=mode == tf.estimator.ModeKeys.TRAIN)
@@ -62,14 +61,14 @@ class VariantTaskExample(LifeomicBinaryClassification):
         return {"item": features_train}, labels_train, {"item": features_test}, labels_test
 
     def load_cohorts(self):
-        with open('variant.json', 'r') as f:
+        with open('variant_data.json', 'r') as f:
             loaded_data = json.load(f)
         features = np.asarray(loaded_data['features']).astype(np.float32)
         patients = loaded_data['patients']
         cohort_mapping = {
             'classificationCohortMapping': {
-                '0': 'PRED Not TN',
-                '1': 'PRED TN'
+                '0': 'Predicted Not TN',
+                '1': 'Predicted TN'
             }
         }
         return {"item": features}, patients, cohort_mapping
