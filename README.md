@@ -1,6 +1,6 @@
 # Task Service Deep Learning Tools
 
-At LifeOmic, we make it easy to train deep learning models on our [task service](https://docs.us.lifeomic.com/user-guides/task-service/).
+At LifeOmic, we make it easy to train deep learning models on our [task service](https://docs.dev.lifeomic.com/user-guides/automation/tasks/).
 This project serves as a tool to run these models using only python code. We have included several examples, and below,
 we will discuss how to get up and running with any GPU job on task service.
 
